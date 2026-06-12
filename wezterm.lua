@@ -5,39 +5,20 @@ local config = wezterm.config_builder()
 local is_windows = wezterm.target_triple:find("windows") ~= nil
 local home = os.getenv(is_windows and "USERPROFILE" or "HOME")
 
+-- Plugins
+local bar          = wezterm.plugin.require("https://github.com/adriankarlen/bar.wezterm")
+local theme_rotator = wezterm.plugin.require("https://github.com/koh-sh/wezterm-theme-rotator")
+local wezterm_sync = wezterm.plugin.require("https://github.com/dfsramos/wezterm-sync")
+local quota_limit  = wezterm.plugin.require("https://github.com/EdenGibson/wezterm-quota-limit")
+local agent_deck   = wezterm.plugin.require("https://github.com/Eric162/wezterm-agent-deck")
+local cmdpicker    = wezterm.plugin.require("https://github.com/abidibo/wezterm-cmdpicker")
+
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
 config.font_size = 13.0
 
--- Color scheme
+-- Color scheme (set before bar.apply_to_config)
 config.color_scheme = "PaperColor Dark (base16)"
-
--- Tab bar colors matched to PaperColor Dark
-config.colors = {
-  tab_bar = {
-    background = "#1c1c1c",
-    active_tab = {
-      bg_color = "#0087af",
-      fg_color = "#eeeeee",
-    },
-    inactive_tab = {
-      bg_color = "#262626",
-      fg_color = "#585858",
-    },
-    inactive_tab_hover = {
-      bg_color = "#303030",
-      fg_color = "#d0d0d0",
-    },
-    new_tab = {
-      bg_color = "#1c1c1c",
-      fg_color = "#585858",
-    },
-    new_tab_hover = {
-      bg_color = "#262626",
-      fg_color = "#d0d0d0",
-    },
-  },
-}
 
 -- Window appearance
 config.window_background_opacity = 1.0
@@ -45,7 +26,7 @@ config.window_padding = { left = 8, right = 8, top = 6, bottom = 6 }
 config.initial_cols = 220
 config.initial_rows = 50
 
--- Tab bar
+-- Tab bar (bar.wezterm will style it)
 config.use_fancy_tab_bar = true
 config.tab_bar_at_bottom = true
 config.hide_tab_bar_if_only_one_tab = true
@@ -66,6 +47,9 @@ config.foreground_text_hsb = {
   brightness = 1.5,
 }
 
+-- Leader key — used by cmdpicker (Leader then Space = command palette)
+config.leader = { key = "Space", mods = "CTRL", timeout_milliseconds = 1000 }
+
 -- Keybindings
 config.keys = {
   -- Split panes
@@ -84,25 +68,21 @@ config.keys = {
   { key = "K", mods = "CTRL|SHIFT|ALT", action = act.AdjustPaneSize({ "Up",    5 }) },
   { key = "J", mods = "CTRL|SHIFT|ALT", action = act.AdjustPaneSize({ "Down",  5 }) },
 
-  -- Close pane
+  -- Close / zoom pane
   { key = "w", mods = "CTRL|SHIFT", action = act.CloseCurrentPane({ confirm = true }) },
-
-  -- Zoom pane (toggle fullscreen for current pane)
   { key = "z", mods = "CTRL|SHIFT", action = act.TogglePaneZoomState },
 
-  -- New tab / close tab
-  { key = "t", mods = "CTRL|SHIFT", action = act.SpawnTab("CurrentPaneDomain") },
+  -- Tabs
+  { key = "t",   mods = "CTRL|SHIFT", action = act.SpawnTab("CurrentPaneDomain") },
+  { key = "Tab", mods = "CTRL",       action = act.ActivateTabRelative(1) },
+  { key = "Tab", mods = "CTRL|SHIFT", action = act.ActivateTabRelative(-1) },
 
-  -- Navigate tabs
-  { key = "Tab",       mods = "CTRL",       action = act.ActivateTabRelative(1) },
-  { key = "Tab",       mods = "CTRL|SHIFT", action = act.ActivateTabRelative(-1) },
-
-  -- Copy / Paste
+  -- Copy / paste
   { key = "c", mods = "CTRL|SHIFT", action = act.CopyTo("Clipboard") },
   { key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom("Clipboard") },
   { key = "v", mods = "CTRL",       action = act.SendKey({ key = "v", mods = "CTRL" }) },
 
-  -- Image paste: saves clipboard image to ~/Pictures/screenshots and sends the path
+  -- Image paste: saves clipboard image to ~/Pictures/screenshots and types the path
   {
     key = "v",
     mods = "CTRL|ALT",
@@ -127,31 +107,9 @@ config.keys = {
 
   -- Search
   { key = "f", mods = "CTRL|SHIFT", action = act.Search({ CaseSensitiveString = "" }) },
-
-  -- Keybind cheat sheet
-  {
-    key = "/",
-    mods = "CTRL|SHIFT",
-    action = wezterm.action_callback(function(window, pane)
-      local cmd
-      if is_windows then
-        cmd = { "powershell", "-NoProfile", "-File", home .. "\\wezterm-config\\scripts\\keybinds.ps1" }
-      else
-        cmd = { home .. "/.local/bin/wezterm-keybinds" }
-      end
-      window:perform_action(
-        act.SplitPane({
-          direction = "Right",
-          size = { Percent = 35 },
-          command = { args = cmd },
-        }),
-        pane
-      )
-    end),
-  },
 }
 
--- Mouse bindings: right-click copies selection or pastes; triple-click selects semantic zone
+-- Mouse: right-click copies selection or pastes; triple-click selects semantic zone
 config.mouse_bindings = {
   {
     event = { Down = { streak = 3, button = "Left" } },
@@ -172,5 +130,13 @@ config.mouse_bindings = {
     end),
   },
 }
+
+-- Apply plugins (cmdpicker must be last)
+bar.apply_to_config(config)
+theme_rotator.apply_to_config(config)
+wezterm_sync.apply_to_config(config)
+quota_limit.apply_to_config(config)
+agent_deck.apply_to_config(config)
+cmdpicker.apply_to_config(config, { title = "Command Palette" })
 
 return config
