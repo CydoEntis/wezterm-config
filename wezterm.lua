@@ -103,7 +103,7 @@ if tabsets then
   wezterm.on("rename_tabset", function(window) tabsets.rename_tabset(window) end)
 end
 -- cmdpicker last (must be last per existing comment)
-if clip2path then clip2path.apply_to_config(config) end
+if clip2path  then clip2path.apply_to_config(config) end
 if cmdpicker  then cmdpicker.apply_to_config(config, { title = "Command Palette" }) end
 
 -- Append our custom keys after plugins so nothing overwrites them
@@ -128,6 +128,23 @@ local custom_keys = {
   -- Close / zoom pane
   { key = "w", mods = "CTRL|SHIFT", action = act.CloseCurrentPane { confirm = true } },
   { key = "z", mods = "CTRL|SHIFT", action = act.TogglePaneZoomState },
+
+  -- Image paste: saves clipboard image to ~/Pictures/screenshots and types the path
+  {
+    key = "v", mods = "CTRL|ALT",
+    action = wezterm.action_callback(function(window, pane)
+      local cmd
+      if is_windows then
+        cmd = { "powershell", "-NoProfile", "-NonInteractive", "-File", home .. "\\clip2path.ps1" }
+      else
+        cmd = { home .. "/.local/bin/clip2path" }
+      end
+      local success, stdout = wezterm.run_child_process(cmd)
+      if success and stdout and #stdout > 0 then
+        pane:send_text(stdout:gsub("[\r\n]+$", ""))
+      end
+    end),
+  },
 
 }
 -- tabsets: LEADER+t=save, LEADER+o=load, LEADER+x=delete, LEADER+e=rename
