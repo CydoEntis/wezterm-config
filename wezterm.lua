@@ -23,6 +23,7 @@ local agent_deck         = load_plugin("https://github.com/Eric162/wezterm-agent
 local cmdpicker          = load_plugin("https://github.com/abidibo/wezterm-cmdpicker")
 local workspace_picker   = load_plugin("https://github.com/isseii10/workspace-picker.wezterm")
 local tabsets            = load_plugin("https://github.com/srackham/tabsets.wezterm")
+local clip2path          = load_plugin("https://github.com/CydoEntis/clip2path.wezterm")
 
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
@@ -102,7 +103,8 @@ if tabsets then
   wezterm.on("rename_tabset", function(window) tabsets.rename_tabset(window) end)
 end
 -- cmdpicker last (must be last per existing comment)
-if cmdpicker then cmdpicker.apply_to_config(config, { title = "Command Palette" }) end
+if clip2path then clip2path.apply_to_config(config) end
+if cmdpicker  then cmdpicker.apply_to_config(config, { title = "Command Palette" }) end
 
 -- Append our custom keys after plugins so nothing overwrites them
 if not config.keys then config.keys = {} end
@@ -127,22 +129,6 @@ local custom_keys = {
   { key = "w", mods = "CTRL|SHIFT", action = act.CloseCurrentPane { confirm = true } },
   { key = "z", mods = "CTRL|SHIFT", action = act.TogglePaneZoomState },
 
-  -- Image paste: saves clipboard image to ~/Pictures/screenshots and types the path
-  {
-    key = "v", mods = "CTRL|ALT",
-    action = wezterm.action_callback(function(window, pane)
-      local cmd
-      if is_windows then
-        cmd = { "powershell", "-NoProfile", "-NonInteractive", "-File", home .. "\\clip2path.ps1" }
-      else
-        cmd = { home .. "/.local/bin/clip2path" }
-      end
-      local success, stdout = wezterm.run_child_process(cmd)
-      if success and stdout and #stdout > 0 then
-        pane:send_text(stdout:gsub("[\r\n]+$", ""))
-      end
-    end),
-  },
 }
 -- tabsets: LEADER+t=save, LEADER+o=load, LEADER+x=delete, LEADER+e=rename
 -- (avoids conflict with workspace-picker's LEADER+S)
