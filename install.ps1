@@ -4,17 +4,16 @@
 param([switch]$Copy)
 
 $repo = $PSScriptRoot
-$home = $env:USERPROFILE
+$userHome = $env:USERPROFILE
 
 $links = @{
-    "$home\.wezterm.lua" = "$repo\wezterm.lua"
-    "$home\clip2path.ps1" = "$repo\scripts\clip2path.ps1"
+    "$userHome\.wezterm.lua" = "$repo\wezterm.lua"
+    "$userHome\clip2path.ps1" = "$repo\scripts\clip2path.ps1"
 }
 
 foreach ($entry in $links.GetEnumerator()) {
     if (Test-Path $entry.Key) {
-        Write-Host "Already exists, skipping: $($entry.Key)"
-        continue
+        Remove-Item $entry.Key -Force
     }
     if ($Copy) {
         Copy-Item $entry.Value $entry.Key
@@ -25,7 +24,7 @@ foreach ($entry in $links.GetEnumerator()) {
     }
 }
 
-$screenshotsDir = "$home\Pictures\screenshots"
+$screenshotsDir = "$userHome\Pictures\screenshots"
 if (-not (Test-Path $screenshotsDir)) {
     New-Item -ItemType Directory -Path $screenshotsDir | Out-Null
     Write-Host "Created: $screenshotsDir"

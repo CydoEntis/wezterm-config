@@ -12,6 +12,33 @@ config.font_size = 13.0
 -- Color scheme
 config.color_scheme = "PaperColor Dark (base16)"
 
+-- Tab bar colors matched to PaperColor Dark
+config.colors = {
+  tab_bar = {
+    background = "#1c1c1c",
+    active_tab = {
+      bg_color = "#0087af",
+      fg_color = "#eeeeee",
+    },
+    inactive_tab = {
+      bg_color = "#262626",
+      fg_color = "#585858",
+    },
+    inactive_tab_hover = {
+      bg_color = "#303030",
+      fg_color = "#d0d0d0",
+    },
+    new_tab = {
+      bg_color = "#1c1c1c",
+      fg_color = "#585858",
+    },
+    new_tab_hover = {
+      bg_color = "#262626",
+      fg_color = "#d0d0d0",
+    },
+  },
+}
+
 -- Window appearance
 config.window_background_opacity = 1.0
 config.window_padding = { left = 8, right = 8, top = 6, bottom = 6 }
@@ -19,7 +46,7 @@ config.initial_cols = 220
 config.initial_rows = 50
 
 -- Tab bar
-config.use_fancy_tab_bar = false
+config.use_fancy_tab_bar = true
 config.tab_bar_at_bottom = true
 config.hide_tab_bar_if_only_one_tab = true
 
@@ -28,6 +55,16 @@ config.scrollback_lines = 10000
 
 -- Bell
 config.audible_bell = "Disabled"
+
+-- Cursor
+config.default_cursor_style = "BlinkingBar"
+
+-- Slightly brighten text for readability
+config.foreground_text_hsb = {
+  hue = 1.0,
+  saturation = 1.2,
+  brightness = 1.5,
+}
 
 -- Keybindings
 config.keys = {
@@ -90,6 +127,50 @@ config.keys = {
 
   -- Search
   { key = "f", mods = "CTRL|SHIFT", action = act.Search({ CaseSensitiveString = "" }) },
+
+  -- Keybind cheat sheet
+  {
+    key = "/",
+    mods = "CTRL|SHIFT",
+    action = wezterm.action_callback(function(window, pane)
+      local cmd
+      if is_windows then
+        cmd = { "powershell", "-NoProfile", "-File", home .. "\\wezterm-config\\scripts\\keybinds.ps1" }
+      else
+        cmd = { home .. "/.local/bin/wezterm-keybinds" }
+      end
+      window:perform_action(
+        act.SplitPane({
+          direction = "Right",
+          size = { Percent = 35 },
+          command = { args = cmd },
+        }),
+        pane
+      )
+    end),
+  },
+}
+
+-- Mouse bindings: right-click copies selection or pastes; triple-click selects semantic zone
+config.mouse_bindings = {
+  {
+    event = { Down = { streak = 3, button = "Left" } },
+    action = act.SelectTextAtMouseCursor("SemanticZone"),
+    mods = "NONE",
+  },
+  {
+    event = { Down = { streak = 1, button = "Right" } },
+    mods = "NONE",
+    action = wezterm.action_callback(function(window, pane)
+      local has_selection = window:get_selection_text_for_pane(pane) ~= ""
+      if has_selection then
+        window:perform_action(act.CopyTo("ClipboardAndPrimarySelection"), pane)
+        window:perform_action(act.ClearSelection, pane)
+      else
+        window:perform_action(act.PasteFrom("Clipboard"), pane)
+      end
+    end),
+  },
 }
 
 return config
