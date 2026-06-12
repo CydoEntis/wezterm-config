@@ -4,8 +4,8 @@ $lines = @"
   ================
 
   PANES
-    Ctrl+Shift+\          Split pane horizontal
-    Ctrl+Shift+-          Split pane vertical
+    Ctrl+Alt+|            Split pane horizontal
+    Ctrl+Alt+_            Split pane vertical
     Ctrl+Shift+W          Close pane
     Ctrl+Shift+Z          Zoom / unzoom pane
     Ctrl+Shift+H/J/K/L    Navigate panes (left/down/up/right)
