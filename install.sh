@@ -4,8 +4,8 @@ set -e
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # --- wezterm.lua symlink ---
-ln -sf "$REPO/wezterm.lua" "$HOME/.wezterm.lua"
-echo "Linked ~/.wezterm.lua"
+cp "$REPO/wezterm.lua" "$HOME/.wezterm.lua"
+echo "Copied ~/.wezterm.lua"
 
 # --- screenshots dir (used by clip2path plugin) ---
 mkdir -p "$HOME/Pictures/screenshots"
