@@ -26,7 +26,6 @@ local quota_limit        = load_plugin("https://github.com/EdenGibson/wezterm-qu
 local agent_deck         = load_plugin("https://github.com/Eric162/wezterm-agent-deck")
 local cmdpicker          = load_plugin("https://github.com/abidibo/wezterm-cmdpicker")
 local workspace_picker   = load_plugin("https://github.com/isseii10/workspace-picker.wezterm")
-local tabsets            = load_plugin("https://github.com/srackham/tabsets.wezterm")
 local clip2path          = load_plugin("https://github.com/CydoEntis/clip2path.wezterm")
 
 -- Inline fallback if plugin fails to load
@@ -146,19 +145,6 @@ if quota_limit   then quota_limit.apply_to_config(config) end
 if agent_deck    then agent_deck.apply_to_config(config) end
 -- workspace-picker: LEADER+s = fuzzy picker, LEADER+S = new workspace, LEADER+r = rename
 if workspace_picker then workspace_picker.apply_to_config(config) end
--- tabsets: event-driven; keys added below
-if tabsets then
-  local ok, err = pcall(tabsets.setup, { fuzzy_selector = true })
-  if ok then
-    wezterm.on("save_tabset",   function(window) tabsets.save_tabset(window) end)
-    wezterm.on("load_tabset",   function(window) tabsets.load_tabset(window) end)
-    wezterm.on("delete_tabset", function(window) tabsets.delete_tabset(window) end)
-    wezterm.on("rename_tabset", function(window) tabsets.rename_tabset(window) end)
-  else
-    wezterm.log_error("tabsets.setup failed: " .. tostring(err))
-    tabsets = nil  -- treat as not loaded so keys are skipped
-  end
-end
 -- cmdpicker last (must be last per existing comment)
 if clip2path then
   clip2path.apply_to_config(config)
@@ -196,15 +182,6 @@ local custom_keys = {
 
 
 }
--- tabsets: LEADER+t=save, LEADER+o=load, LEADER+x=delete, LEADER+e=rename
--- (avoids conflict with workspace-picker's LEADER+S)
-if tabsets then
-  table.insert(custom_keys, { key = "t", mods = "LEADER", action = act.EmitEvent "save_tabset" })
-  table.insert(custom_keys, { key = "o", mods = "LEADER", action = act.EmitEvent "load_tabset" })
-  table.insert(custom_keys, { key = "x", mods = "LEADER", action = act.EmitEvent "delete_tabset" })
-  table.insert(custom_keys, { key = "e", mods = "LEADER", action = act.EmitEvent "rename_tabset" })
-end
-
 for _, k in ipairs(custom_keys) do
   table.insert(config.keys, k)
 end

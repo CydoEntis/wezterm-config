@@ -23,7 +23,6 @@ mkdir -p "$PLUGIN_ROOT"
 declare -A PLUGINS=(
   ["httpssCssZssZsgithubsDscomsZsCydoEntissZsclip2pathsDswezterm"]="https://github.com/CydoEntis/clip2path.wezterm"
   ["httpssCssZssZsgithubsDscomsZsisseii10sZsworkspacesDpickersDswezterm"]="https://github.com/isseii10/workspace-picker.wezterm"
-  ["httpssCssZssZsgithubsDscomsZssrackhamsZstabsetsDswezterm"]="https://github.com/srackham/tabsets.wezterm"
 )
 
 if ! command -v git &>/dev/null; then

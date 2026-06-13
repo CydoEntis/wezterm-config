@@ -26,7 +26,6 @@ if (-not (Test-Path $pluginRoot)) { New-Item -ItemType Directory -Path $pluginRo
 $plugins = @(
     @{ url = "https://github.com/CydoEntis/clip2path.wezterm";       dir = "httpssCssZssZsgithubsDscomsZsCydoEntissZsclip2pathsDswezterm" }
     @{ url = "https://github.com/isseii10/workspace-picker.wezterm"; dir = "httpssCssZssZsgithubsDscomsZsisseii10sZsworkspacesDpickersDswezterm" }
-    @{ url = "https://github.com/srackham/tabsets.wezterm";          dir = "httpssCssZssZsgithubsDscomsZssrackhamsZstabsetsDswezterm" }
 )
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
