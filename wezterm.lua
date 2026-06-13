@@ -25,6 +25,40 @@ local workspace_picker   = load_plugin("https://github.com/isseii10/workspace-pi
 local tabsets            = load_plugin("https://github.com/srackham/tabsets.wezterm")
 local clip2path          = load_plugin("https://github.com/CydoEntis/clip2path.wezterm")
 
+-- Inline fallback if plugin fails to load
+local function clip2path_fallback(window, pane)
+  local dir = home .. (is_windows and "\\Pictures\\screenshots" or "/Pictures/screenshots")
+  local cmd
+  if is_windows then
+    cmd = {
+      "powershell", "-NoProfile", "-NonInteractive", "-Command",
+      string.format([[
+        Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+        $dir = "%s"
+        if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
+        $img = [System.Windows.Forms.Clipboard]::GetImage()
+        if ($img -ne $null) {
+            $file = "$dir\clip_$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds()).png"
+            $img.Save($file, [System.Drawing.Imaging.ImageFormat]::Png)
+            [Console]::Write($file)
+        } else {
+            [Console]::Write([System.Windows.Forms.Clipboard]::GetText())
+        }
+      ]], dir)
+    }
+  else
+    cmd = { "bash", "-c", string.format([[
+      dir="%s"; mkdir -p "$dir"
+      if pngpaste "$file" 2>/dev/null; then printf '%%s' "$file"
+      else pbpaste; fi
+    ]], dir) }
+  end
+  local ok, stdout = wezterm.run_child_process(cmd)
+  if ok and stdout and #stdout > 0 then
+    pane:send_text(stdout:gsub("[\r\n]+$", ""))
+  end
+end
+
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
 config.font_size = 13.0
@@ -103,7 +137,15 @@ if tabsets then
   wezterm.on("rename_tabset", function(window) tabsets.rename_tabset(window) end)
 end
 -- cmdpicker last (must be last per existing comment)
-if clip2path  then clip2path.apply_to_config(config) end
+if clip2path then
+  clip2path.apply_to_config(config)
+else
+  -- plugin didn't load; use inline implementation
+  table.insert(config.keys, {
+    key = "v", mods = "CTRL|ALT",
+    action = wezterm.action_callback(clip2path_fallback),
+  })
+end
 if cmdpicker  then cmdpicker.apply_to_config(config, { title = "Command Palette" }) end
 
 -- Append our custom keys after plugins so nothing overwrites them
