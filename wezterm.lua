@@ -61,6 +61,13 @@ end
 -- Default shell
 config.default_prog = { "powershell.exe", "-NoLogo" }
 
+-- Launch menu: LEADER+Enter to pick a shell
+config.launch_menu = {
+  { label = "PowerShell", args = { "powershell.exe", "-NoLogo" } },
+  { label = "CMD",        args = { "cmd.exe" } },
+  { label = "Git Bash",   args = { "C:\\Program Files\\Git\\bin\\bash.exe", "-i", "-l" } },
+}
+
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
 config.font_size = 13.0
@@ -164,6 +171,9 @@ local custom_keys = {
   -- Close / zoom pane
   { key = "w", mods = "CTRL|SHIFT", action = act.CloseCurrentPane { confirm = true } },
   { key = "z", mods = "CTRL|SHIFT", action = act.TogglePaneZoomState },
+
+  -- Shell picker (LEADER+Enter)
+  { key = "Enter", mods = "LEADER", action = act.ShowLauncherArgs { flags = "LAUNCH_MENU_ITEMS" } },
 
 
 }
