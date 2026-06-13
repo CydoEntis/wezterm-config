@@ -58,15 +58,23 @@ local function clip2path_fallback(window, pane)
   end
 end
 
--- Default shell
-config.default_prog = { "powershell.exe", "-NoLogo" }
-
--- Launch menu: LEADER+Enter to pick a shell
-config.launch_menu = {
-  { label = "PowerShell", args = { "powershell.exe", "-NoLogo" } },
-  { label = "CMD",        args = { "cmd.exe" } },
-  { label = "Git Bash",   args = { "C:\\Program Files\\Git\\bin\\bash.exe", "-i", "-l" } },
-}
+-- Default shell + launch menu (platform-aware)
+if is_windows then
+  config.default_prog = { "powershell.exe", "-NoLogo" }
+  config.launch_menu = {
+    { label = "PowerShell", args = { "powershell.exe", "-NoLogo" } },
+    { label = "CMD",        args = { "cmd.exe" } },
+    { label = "Git Bash",   args = { "C:\\Program Files\\Git\\bin\\bash.exe", "-i", "-l" } },
+  }
+else
+  local shell = os.getenv("SHELL") or "/bin/bash"
+  config.default_prog = { shell, "-l" }
+  config.launch_menu = {
+    { label = "Default Shell", args = { shell, "-l" } },
+    { label = "Bash",          args = { "/bin/bash", "-l" } },
+    { label = "Zsh",           args = { "/bin/zsh",  "-l" } },
+  }
+end
 
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
