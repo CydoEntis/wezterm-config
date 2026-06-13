@@ -6,16 +6,12 @@ local is_windows = wezterm.target_triple:find("windows") ~= nil
 local home = os.getenv(is_windows and "USERPROFILE" or "HOME")
 
 -- Plugins (each wrapped so a failure doesn't break the whole config)
-local plugin_log = {}  -- collects status for startup toast
 local function load_plugin(url)
   local ok, result = pcall(wezterm.plugin.require, url)
-  local short = url:match("([^/]+)$")
   if not ok then
-    wezterm.log_error("PLUGIN FAIL [" .. short .. "]: " .. tostring(result))
-    table.insert(plugin_log, "FAIL " .. short)
+    wezterm.log_error("PLUGIN FAIL [" .. url:match("([^/]+)$") .. "]: " .. tostring(result))
     return nil
   end
-  table.insert(plugin_log, "OK   " .. short)
   return result
 end
 
@@ -30,7 +26,6 @@ local clip2path          = load_plugin("https://github.com/CydoEntis/clip2path.w
 
 -- Inline fallback if plugin fails to load
 local function clip2path_fallback(window, pane)
-  window:toast_notification("clip2path", "key captured — running powershell...", nil, 3000)
   local dir = home .. (is_windows and "\\Pictures\\screenshots" or "/Pictures/screenshots")
   local cmd
   if is_windows then
@@ -57,24 +52,11 @@ local function clip2path_fallback(window, pane)
       else pbpaste; fi
     ]], dir) }
   end
-  local ok, stdout, stderr = wezterm.run_child_process(cmd)
-  if not ok then
-    window:toast_notification("clip2path ERROR", "powershell failed: " .. tostring(stderr), nil, 8000)
-    return
+  local ok, stdout = wezterm.run_child_process(cmd)
+  if ok and stdout and #stdout > 0 then
+    pane:send_text(stdout:gsub("[\r\n]+$", ""))
   end
-  if not stdout or #stdout == 0 then
-    window:toast_notification("clip2path ERROR", "empty output from powershell", nil, 8000)
-    return
-  end
-  pane:send_text(stdout:gsub("[\r\n]+$", ""))
 end
-
--- Show plugin load results on first window open
-wezterm.on("gui-startup", function()
-  wezterm.log_warn("=== PLUGIN STATUS ===\n" .. table.concat(plugin_log, "\n"))
-  local using = clip2path and "PLUGIN" or "FALLBACK"
-  wezterm.log_warn("clip2path mode: " .. using)
-end)
 
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
