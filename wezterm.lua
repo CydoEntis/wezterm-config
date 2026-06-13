@@ -148,11 +148,16 @@ if agent_deck    then agent_deck.apply_to_config(config) end
 if workspace_picker then workspace_picker.apply_to_config(config) end
 -- tabsets: event-driven; keys added below
 if tabsets then
-  tabsets.setup({ fuzzy_selector = true })
-  wezterm.on("save_tabset",   function(window) tabsets.save_tabset(window) end)
-  wezterm.on("load_tabset",   function(window) tabsets.load_tabset(window) end)
-  wezterm.on("delete_tabset", function(window) tabsets.delete_tabset(window) end)
-  wezterm.on("rename_tabset", function(window) tabsets.rename_tabset(window) end)
+  local ok, err = pcall(tabsets.setup, { fuzzy_selector = true })
+  if ok then
+    wezterm.on("save_tabset",   function(window) tabsets.save_tabset(window) end)
+    wezterm.on("load_tabset",   function(window) tabsets.load_tabset(window) end)
+    wezterm.on("delete_tabset", function(window) tabsets.delete_tabset(window) end)
+    wezterm.on("rename_tabset", function(window) tabsets.rename_tabset(window) end)
+  else
+    wezterm.log_error("tabsets.setup failed: " .. tostring(err))
+    tabsets = nil  -- treat as not loaded so keys are skipped
+  end
 end
 -- cmdpicker last (must be last per existing comment)
 if clip2path then
