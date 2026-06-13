@@ -58,6 +58,9 @@ local function clip2path_fallback(window, pane)
   end
 end
 
+-- Default shell
+config.default_prog = { "powershell.exe", "-NoLogo" }
+
 -- Font
 config.font = wezterm.font("Anka/Coder", { weight = "Regular", stretch = "Normal", style = "Normal" })
 config.font_size = 13.0
